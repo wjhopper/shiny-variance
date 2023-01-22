@@ -48,7 +48,7 @@ ui <- fluidPage(
                    step = 1
                    ),
       fluidRow(
-        column(3, uiOutput("startstop")),
+        column(3, actionButton("startstop", "Start")),
         column(5, actionButton("skip", "Skip to End")),
         column(3, actionButton("reset", "Reset"))
                ),
@@ -226,8 +226,12 @@ server <- function(input, output) {
     state$continue <- !isolate(state$continue)
     if (state$continue) {
       state$timer <- reactiveTimer(state$speed_map[input$speed])
+      lapply(c("sigma2", "reps", "estimator"), shinyjs::disable)
+      updateActionButton(inputId = "startstop", label = "Stop")
     } else {
       state$timer <- reactiveTimer(Inf)
+      lapply(c("sigma2", "reps", "estimator"), shinyjs::enable)
+      updateActionButton(inputId = "startstop", label = "Start")
     }
   })
 
@@ -249,17 +253,6 @@ server <- function(input, output) {
   
   observeEvent(input$speed, {
     state$timer <- reactiveTimer(state$speed_map[input$speed])
-  })
-  
-  output$startstop <- renderUI({
-    if (state$continue) {
-      lbl <- "Stop"
-      lapply(c("sigma2", "reps", "estimator"), shinyjs::disable)
-    } else {
-      lbl <- "Start"
-      lapply(c("sigma2", "reps", "estimator"), shinyjs::enable)
-    }
-    actionButton("startstop", lbl)
   })
   
   output$hist <- renderPlot({population_dist(); sample_hist()})
