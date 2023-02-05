@@ -8,12 +8,15 @@ speed_map <- c("Slow" = 2000, "Fast" = 300)
 ui <- fluidPage(
   
   shinyjs::useShinyjs(),
-  
+  # #value, #estimate_counter, #formula
   tags$head(
     # Note the wrapping of the string in HTML()
     tags$style(HTML("
       #formula .MathJax_Display {
         display: inline !important;
+      }
+      #value, #estimate_counter, #formula {
+        font-size: 2em;
       }"))
   ),
   
@@ -21,7 +24,7 @@ ui <- fluidPage(
   
   sidebarLayout(
     
-    sidebarPanel(
+    sidebarPanel(width = 3,
       
       h4("Comparing Variance Estimators"),
       
@@ -65,7 +68,7 @@ ui <- fluidPage(
     mainPanel(
       
       fluidRow(
-        column(6, plotOutput("hist", height = "215px")),
+        column(6, plotOutput("hist", height = "400px")),
         column(6,
                tags$div(style = "display: flex; flex-wrap: wrap;
                                  flex-direction: row; margin-top: 75px; text-align: center;",
@@ -86,8 +89,8 @@ ui <- fluidPage(
         ),
       
       fluidRow(
-        column(6, plotOutput("hist2", height = "235px")),
-        column(6, plotOutput("runningAvg", height = "235px"))
+        column(6, plotOutput("hist2", height = "440px")),
+        column(6, plotOutput("runningAvg", height = "440px"))
 
       )
     )
@@ -142,15 +145,16 @@ server <- function(input, output) {
     })
   
   population_dist <- function() {
-    par(mai=c(.5,0,.35,0))
+    
+    par(mai=c(.5, 0, .35, 0), cex.main = 2, cex.axis = 1.75, cex.lab = 1.75)
+    
     pop_range <- seq(-4*sqrt(input$sigma2), 4*sqrt(input$sigma2), by = .1)
     pop_density <- dnorm(pop_range, sd=sqrt(input$sigma2))
     plot(pop_range, pop_density, axes=FALSE, frame.plot=TRUE, type="l",
          xlim = c(-3*sqrt(max_variance), 3*sqrt(max_variance)),
          ylim = c(0, dnorm(0, sd = sqrt(input$sigma2)) + .05),
          main = paste0("Sample #", state$step),
-         font.main = 1,
-         cex.main = 1
+         font.main = 1
          )
     axis(side=1)
   }
@@ -166,7 +170,7 @@ server <- function(input, output) {
   
   sampling_dist_hist <- function(state) {
     
-    par(mai=c(.85, .375, .45, 0), mgp = c(2, 1, 0))
+    par(mar = c(5, 5, 4, 1), cex.main = 2, cex.axis = 1.75, cex.lab = 1.75)
     
     old_estimates <- state$data[1:(state$step - 1), ]
     newest_estimate <- state$data[state$step, ]
@@ -177,8 +181,7 @@ server <- function(input, output) {
            xlab = "Estimated Variance",
            ylab=NULL,
            main = paste0("Distibution of ", state$step, " Variance Estimates"),
-           font.main = 1,
-           cex.main = 1
+           font.main = 1
            )      
     }
 
@@ -194,7 +197,7 @@ server <- function(input, output) {
   
   running_avg_plot <- function(state) {
     
-    par(mai=c(.85, .75, .45, 0.2), mgp = c(2, 1, 0))
+    par(mar = c(5, 5, 4, 1), cex.main = 2, cex.axis = 1.75, cex.lab = 1.75)
 
     plot(x = 1:state$step,
          y = state$data$running_avg[1:state$step],
@@ -208,8 +211,7 @@ server <- function(input, output) {
                         state$step,
                         state$data$running_avg[state$step]
                         ),
-         font.main = 1,
-         cex.main = 1
+         font.main = 1
          )
     
     abline(a = state$data$running_avg[state$step],
