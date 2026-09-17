@@ -109,10 +109,10 @@ server <- function(input, output) {
   update_estimator <- function(input, state) {
     if (startsWith(input$estimator, "Adjusted")) {
       state$estimator <- stats::var
-      state$formula <- "$$\\frac{\\sum_{i=1}^{N}{(x_i - \\bar{x})^2}}{N-1} =$$"
+      state$formula <- "$$\\frac{\\sum_{i=1}^{n}{(x_i - \\bar{x})^2}}{n-1} =$$"
     } else {
       state$estimator <- function(...) { stats::var(...) * 29/30 }
-      state$formula <- "$$\\frac{\\sum_{i=1}^{N}{(x_i - \\bar{x})^2}}{N} =$$"
+      state$formula <- "$$\\frac{\\sum_{i=1}^{n}{(x_i - \\bar{x})^2}}{n} =$$"
     }
   }
 
@@ -197,17 +197,16 @@ server <- function(input, output) {
   
   running_avg_plot <- function(state) {
     
-    par(mar = c(5, 5, 4, 1), cex.main = 2, cex.axis = 1.75, cex.lab = 1.75)
-
+    par(mar = c(5, 5, 4, 1), cex.main = 1.75, cex.axis = 1.75, cex.lab = 1.75)
+    
     plot(x = 1:state$step,
          y = state$data$running_avg[1:state$step],
          xlim = c(0, input$reps),
          ylim = range(state$data$running_avg),
-         col = "blue",
          type = "l",
          xlab = "Samples Collected",
          ylab = "Average Variance Estimate",
-         main = sprintf("Average of %i Variance Estimates = %.3f",
+         main = sprintf("Mean of %i Estimates = %.3f",
                         state$step,
                         state$data$running_avg[state$step]
                         ),
@@ -215,8 +214,23 @@ server <- function(input, output) {
          )
     
     abline(a = state$data$running_avg[state$step],
-           b = 0
+           b = 0,
+           col = "blue"
            )
+    
+    abline(a = input$sigma2,
+           b = 0,
+           col = "red"
+           )
+    
+    legend(x = input$reps * .55,
+           y = sum(range(state$data$running_avg))/2,
+           col = c("red", "blue"),
+           lty = 1,
+           legend = c("Population Variance", "Running Average\nof Variance Estimates"),
+           seg.len = 2
+           )
+    
   }
   
   forward <- function() {
@@ -272,4 +286,3 @@ server <- function(input, output) {
 }
   
 shinyApp(ui = ui, server = server)
-  
